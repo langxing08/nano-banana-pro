@@ -4,10 +4,6 @@ import { Badge } from "@/components/ui/badge"
 export function HeroSection() {
   return (
     <section className="relative overflow-hidden py-20 md:py-32">
-      {/* Decorative banana elements */}
-      <div className="absolute top-10 right-10 opacity-10 text-9xl rotate-12 select-none">🍌</div>
-      <div className="absolute bottom-20 left-10 opacity-10 text-7xl -rotate-12 select-none">🍌</div>
-
       <div className="container relative">
         <div className="flex flex-col items-center text-center gap-6 max-w-4xl mx-auto">
           <Badge variant="secondary" className="gap-2 px-4 py-2">

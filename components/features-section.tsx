@@ -44,10 +44,7 @@ const features = [
 
 export function FeaturesSection() {
   return (
-    <section id="features" className="py-20 bg-gradient-to-b from-white to-amber-50/30 relative overflow-hidden">
-      <div className="absolute left-0 top-1/2 -translate-y-1/2 text-8xl opacity-20">🍌</div>
-      <div className="absolute right-0 top-1/2 -translate-y-1/2 text-8xl opacity-20">🍌</div>
-
+    <section id="features" className="py-20 relative overflow-hidden">
       <div className="container relative z-10">
         <div className="text-center mb-16">
           <p className="text-orange-500 font-semibold mb-3">Core Features</p>

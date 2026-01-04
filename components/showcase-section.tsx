@@ -53,7 +53,7 @@ export function ShowcaseSection() {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
 
   return (
-    <section id="showcase" className="py-20 bg-gradient-to-b from-white to-secondary/20 dark:from-background dark:to-secondary/10">
+    <section id="showcase" className="py-20">
       <div className="container">
         <div className="text-center mb-12">
           <p className="text-primary font-semibold mb-2">Showcase</p>

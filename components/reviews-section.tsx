@@ -25,9 +25,6 @@ const reviews = [
 export function ReviewsSection() {
   return (
     <section className="py-20 relative">
-      <div className="absolute left-4 top-8 text-6xl opacity-50 rotate-12">🍌</div>
-      <div className="absolute right-4 top-8 text-6xl opacity-50 -rotate-12">🍌</div>
-
       <div className="container">
         <div className="text-center mb-12">
           <p className="text-brand font-semibold mb-2">User Reviews</p>

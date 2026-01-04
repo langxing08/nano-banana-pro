@@ -81,7 +81,7 @@ export function EditorSection() {
   }
 
   return (
-    <section id="editor" className="py-20 bg-background">
+    <section id="editor" className="py-20">
       <div className="container max-w-7xl">
         <div className="text-center mb-12">
           <p className="text-primary font-semibold mb-2">Get Started</p>

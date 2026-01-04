@@ -6,10 +6,12 @@ import { ShowcaseSection } from "@/components/showcase-section"
 import { ReviewsSection } from "@/components/reviews-section"
 import { FAQSection } from "@/components/faq-section"
 import { Footer } from "@/components/footer"
+import { FixedBananas } from "@/components/fixed-bananas"
 
 export default function Home() {
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen relative">
+      <FixedBananas />
       <Header />
       <HeroSection />
       <EditorSection />
