@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
   try {
-    const { prompt, images } = await request.json()
+    const { prompt, images, mode } = await request.json()
 
     if (!prompt || typeof prompt !== 'string') {
       return NextResponse.json(
@@ -19,16 +19,28 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 构建消息内容
-    const content: Array<{ type: string; text?: string; image_url?: { url: string } }> = [
-      {
-        type: 'text',
-        text: prompt,
-      },
-    ]
+    const isTextToImage = mode === 'text' || (!images || images.length === 0)
+    console.log('=== Request Info ===')
+    console.log('Mode:', mode, 'isTextToImage:', isTextToImage)
+    console.log('Images count:', images?.length || 0)
 
-    // 添加图片（如果有）- 使用 base64 格式
-    if (images && Array.isArray(images) && images.length > 0) {
+    // 构建消息内容
+    const content: Array<{ type: string; text?: string; image_url?: { url: string } }> = []
+
+    // 对于 text-to-image 模式，添加明确的图片生成指令
+    if (isTextToImage) {
+      content.push({
+        type: 'text',
+        text: `You are an image generation AI. Generate and output an image based on this description. Do not respond with text, only output the generated image.\n\nDescription: ${prompt}`,
+      })
+    } else {
+      // image-to-image 模式
+      content.push({
+        type: 'text',
+        text: `Edit this image based on the following instruction: ${prompt}`,
+      })
+      
+      // 添加参考图片
       for (const imageData of images) {
         content.push({
           type: 'image_url',

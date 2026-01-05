@@ -11,9 +11,10 @@ import { useClipboard } from "@/hooks/use-clipboard"
 import { toast } from "sonner"
 
 export function EditorSection() {
-  const [prompt, setPrompt] = useState(
-    "A futuristic city powered by nano technology, golden hour lighting, ultra detailed...",
-  )
+  const imageToImagePrompt = "create a 1/7 scale commercialized figure of the character in the illustration, in a realistic style and environment. Place the figure on a computer desk, using a circular transparent acrylic base without any text. On the computer screen, display the ZBrush modeling process of the figure. Next to the computer screen, place a BANDAI-style toy packaging box printed with the original artwork."
+  const textToImagePrompt = "A futuristic city powered by nano technology, golden hour lighting, ultra detailed..."
+  
+  const [prompt, setPrompt] = useState(imageToImagePrompt)
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([])
   const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([])
   const [activeTab, setActiveTab] = useState<"image" | "text">("image")
@@ -54,12 +55,23 @@ export function EditorSection() {
     setIsGenerating(true)
     
     try {
-      // 将上传的图片转换为 base64
+      // 只在 image-to-image 模式下发送图片
       const imageDataUrls: string[] = []
       if (activeTab === "image") {
         for (const img of uploadedImages) {
           imageDataUrls.push(img.preview) // preview 已经是 base64 data URL
         }
+      }
+
+      // 构建请求体 - text-to-image 模式不发送 images 字段
+      const requestBody: { prompt: string; images?: string[]; mode: string } = {
+        prompt: prompt,
+        mode: activeTab, // 传递当前模式
+      }
+      
+      // 只有 image-to-image 模式才添加图片
+      if (activeTab === "image" && imageDataUrls.length > 0) {
+        requestBody.images = imageDataUrls
       }
 
       // 调用 API
@@ -68,10 +80,7 @@ export function EditorSection() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          prompt: prompt,
-          images: imageDataUrls,
-        }),
+        body: JSON.stringify(requestBody),
       })
 
       const data = await response.json()
@@ -85,22 +94,27 @@ export function EditorSection() {
         throw new Error(data.error || 'API 调用失败')
       }
 
-      // 处理生成结果
-      const newImage: GeneratedImage = {
-        id: `gen-${Date.now()}`,
-        url: data.imageUrl || '/placeholder.svg',
-        prompt: prompt,
-        createdAt: new Date(),
-      }
-      
-      console.log('New image object:', { id: newImage.id, urlLength: newImage.url.length, urlPreview: newImage.url.substring(0, 100) })
-      
-      // 如果没有生成图片但有文本内容，显示文本
-      if (!data.imageUrl && data.content) {
+      // 处理生成结果 - 只有当有图片时才添加到画廊
+      if (data.imageUrl) {
+        const newImage: GeneratedImage = {
+          id: `gen-${Date.now()}`,
+          url: data.imageUrl,
+          prompt: prompt,
+          createdAt: new Date(),
+        }
+        
+        console.log('New image object:', { id: newImage.id, urlLength: newImage.url.length, urlPreview: newImage.url.substring(0, 100) })
+        
+        // 每次生成时只显示最新的图片，清除之前的缓存
+        setGeneratedImages([newImage])
+      } else if (data.content) {
+        // 如果没有生成图片但有文本内容，显示文本
         toast.info(`AI 回复: ${data.content.substring(0, 100)}...`)
+        return // 不添加到画廊
+      } else {
+        toast.error("未能生成图片，请重试")
+        return
       }
-      
-      setGeneratedImages(prev => [newImage, ...prev])
       toast.success("生成完成！")
     } catch (error) {
       console.error('Generate error:', error)
@@ -172,7 +186,13 @@ export function EditorSection() {
             {/* Tabs */}
             <div className="grid grid-cols-2 gap-2">
               <button
-                onClick={() => setActiveTab("image")}
+                onClick={() => {
+                  if (activeTab !== "image") {
+                    setActiveTab("image")
+                    setGeneratedImages([]) // 切换模式时清空画廊
+                    setPrompt(imageToImagePrompt) // 切换到 image-to-image 的默认提示词
+                  }
+                }}
                 className={`flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-medium transition-colors ${
                   activeTab === "image" ? "bg-primary text-white" : "bg-yellow-100 dark:bg-yellow-900/30 text-foreground hover:bg-yellow-200 dark:hover:bg-yellow-900/50"
                 }`}
@@ -181,7 +201,13 @@ export function EditorSection() {
                 Image to Image
               </button>
               <button
-                onClick={() => setActiveTab("text")}
+                onClick={() => {
+                  if (activeTab !== "text") {
+                    setActiveTab("text")
+                    setGeneratedImages([]) // 切换模式时清空画廊
+                    setPrompt(textToImagePrompt) // 切换到 text-to-image 的默认提示词
+                  }
+                }}
                 className={`flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-medium transition-colors ${
                   activeTab === "text" ? "bg-primary text-white" : "bg-yellow-100 dark:bg-yellow-900/30 text-foreground hover:bg-yellow-200 dark:hover:bg-yellow-900/50"
                 }`}
