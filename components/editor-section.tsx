@@ -40,7 +40,7 @@ export function EditorSection() {
     }
   }
 
-  // 模拟生成图片
+  // 调用 Gemini API 生成图片
   const handleGenerate = async () => {
     if (activeTab === "image" && uploadedImages.length === 0) {
       toast.error("请先上传至少一张图片")
@@ -53,31 +53,95 @@ export function EditorSection() {
 
     setIsGenerating(true)
     
-    // 模拟 API 调用延迟
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    // 模拟生成结果
-    const newImage: GeneratedImage = {
-      id: `gen-${Date.now()}`,
-      url: "/placeholder.svg",
-      prompt: prompt,
-      createdAt: new Date(),
+    try {
+      // 将上传的图片转换为 base64
+      const imageDataUrls: string[] = []
+      if (activeTab === "image") {
+        for (const img of uploadedImages) {
+          imageDataUrls.push(img.preview) // preview 已经是 base64 data URL
+        }
+      }
+
+      // 调用 API
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: prompt,
+          images: imageDataUrls,
+        }),
+      })
+
+      const data = await response.json()
+      
+      console.log('=== Frontend received data ===')
+      console.log('Response data:', data)
+      console.log('imageUrl exists:', !!data.imageUrl)
+      console.log('imageUrl preview:', data.imageUrl?.substring(0, 100))
+
+      if (!response.ok) {
+        throw new Error(data.error || 'API 调用失败')
+      }
+
+      // 处理生成结果
+      const newImage: GeneratedImage = {
+        id: `gen-${Date.now()}`,
+        url: data.imageUrl || '/placeholder.svg',
+        prompt: prompt,
+        createdAt: new Date(),
+      }
+      
+      console.log('New image object:', { id: newImage.id, urlLength: newImage.url.length, urlPreview: newImage.url.substring(0, 100) })
+      
+      // 如果没有生成图片但有文本内容，显示文本
+      if (!data.imageUrl && data.content) {
+        toast.info(`AI 回复: ${data.content.substring(0, 100)}...`)
+      }
+      
+      setGeneratedImages(prev => [newImage, ...prev])
+      toast.success("生成完成！")
+    } catch (error) {
+      console.error('Generate error:', error)
+      toast.error(error instanceof Error ? error.message : "生成失败，请重试")
+    } finally {
+      setIsGenerating(false)
     }
-    
-    setGeneratedImages(prev => [newImage, ...prev])
-    setIsGenerating(false)
-    toast.success("图片生成成功！")
   }
 
-  // 下载图片
-  const handleDownload = (image: GeneratedImage) => {
-    const link = document.createElement('a')
-    link.href = image.url
-    link.download = `nano-banana-${image.id}.png`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    toast.success("图片下载已开始")
+  // 下载图片 - 支持 base64 data URL
+  const handleDownload = async (image: GeneratedImage) => {
+    try {
+      let blob: Blob
+      
+      if (image.url.startsWith('data:')) {
+        // 处理 base64 data URL
+        const response = await fetch(image.url)
+        blob = await response.blob()
+      } else {
+        // 处理普通 URL
+        const response = await fetch(image.url)
+        blob = await response.blob()
+      }
+      
+      // 创建下载链接
+      const blobUrl = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = blobUrl
+      link.download = `nano-banana-${image.id}.png`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      
+      // 清理 blob URL
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 100)
+      
+      toast.success("图片下载已开始")
+    } catch (error) {
+      console.error('Download error:', error)
+      toast.error("下载失败，请重试")
+    }
   }
 
   return (

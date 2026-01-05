@@ -73,6 +73,14 @@ export function OutputGallery({
                 src={image.url}
                 alt={image.prompt}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  console.error('Image load error for:', image.id)
+                  // 设置一个占位图
+                  e.currentTarget.src = '/placeholder.svg'
+                }}
+                onLoad={() => {
+                  console.log('Image loaded successfully:', image.id)
+                }}
               />
             </div>
             
