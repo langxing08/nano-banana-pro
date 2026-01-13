@@ -8,6 +8,7 @@ import { ChevronDown, Sun, Moon, Menu } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { AnnouncementBanner } from "@/components/announcement-banner"
 import { MobileNav, type NavLink } from "@/components/mobile-nav"
+import { AuthButton } from "@/components/auth-button"
 
 // 导航链接配置
 const navLinks: NavLink[] = [
@@ -133,12 +134,10 @@ export function Header() {
               Launch Now
             </Button>
 
-            <Button
-              variant="outline"
-              className="hidden sm:inline-flex border-[#f59e0b] text-[#f59e0b] hover:bg-[#f59e0b] hover:text-white font-medium bg-transparent"
-            >
-              Sign In
-            </Button>
+            {/* 认证按钮 */}
+            <div className="hidden sm:block">
+              <AuthButton />
+            </div>
 
             {/* 移动端汉堡菜单按钮 */}
             <button

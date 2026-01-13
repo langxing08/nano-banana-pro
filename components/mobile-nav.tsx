@@ -2,6 +2,7 @@
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
+import { AuthButton } from '@/components/auth-button'
 
 export interface NavLink {
   label: string
@@ -104,6 +105,10 @@ export function MobileNav({ isOpen, onClose, links }: MobileNavProps) {
 
         {/* 底部操作按钮 */}
         <div className="mt-auto border-t p-4 space-y-3">
+          {/* 认证按钮 */}
+          <div className="flex justify-center">
+            <AuthButton />
+          </div>
           <a
             href="/pricing"
             onClick={() => onClose()}
