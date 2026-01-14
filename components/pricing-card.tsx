@@ -1,6 +1,6 @@
 'use client'
 
-import { Check } from 'lucide-react'
+import { Check, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -15,12 +15,14 @@ export interface PricingCardProps {
   features: string[]
   isPopular?: boolean
   isYearly: boolean
-  quantityOptions?: number[]
+  isCurrentPlan?: boolean
+  isLoading?: boolean
+  onSubscribe?: () => void
 }
 
 /**
  * PricingCard 组件 - 定价卡片
- * Requirements: 3.1, 3.2, 3.4
+ * Requirements: 3.1, 5.2, 1.2
  */
 export function PricingCard({
   tier,
@@ -31,6 +33,9 @@ export function PricingCard({
   features,
   isPopular = false,
   isYearly,
+  isCurrentPlan = false,
+  isLoading = false,
+  onSubscribe,
 }: PricingCardProps) {
   // 计算当前价格和节省百分比
   const currentPrice = isYearly ? yearlyPrice / 12 : monthlyPrice
@@ -38,19 +43,33 @@ export function PricingCard({
   const monthlyTotal = monthlyPrice * 12
   const savingsPercent = Math.round((1 - yearlyTotal / monthlyTotal) * 100)
 
+  const handleClick = () => {
+    if (!isCurrentPlan && !isLoading && onSubscribe) {
+      onSubscribe()
+    }
+  }
+
   return (
     <Card
       className={cn(
         'relative flex flex-col transition-all duration-300',
         isPopular
           ? 'border-primary border-2 shadow-lg scale-105 z-10'
-          : 'border-border hover:border-primary/50 hover:shadow-md'
+          : 'border-border hover:border-primary/50 hover:shadow-md',
+        isCurrentPlan && 'ring-2 ring-green-500'
       )}
     >
       {/* Most Popular 标签 */}
-      {isPopular && (
+      {isPopular && !isCurrentPlan && (
         <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-4 py-1">
           Most Popular
+        </Badge>
+      )}
+
+      {/* Current Plan 标签 */}
+      {isCurrentPlan && (
+        <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500 text-white px-4 py-1">
+          Current Plan
         </Badge>
       )}
 
@@ -93,13 +112,28 @@ export function PricingCard({
         <Button
           className={cn(
             'w-full',
-            isPopular
+            isCurrentPlan
+              ? 'bg-green-500 hover:bg-green-500 cursor-default'
+              : isPopular
               ? 'bg-primary hover:bg-primary/90'
               : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
           )}
           size="lg"
+          onClick={handleClick}
+          disabled={isCurrentPlan || isLoading}
         >
-          {tier === 'basic' ? 'Get Started' : 'Upgrade Now'}
+          {isLoading ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Processing...
+            </>
+          ) : isCurrentPlan ? (
+            'Current Plan'
+          ) : tier === 'basic' ? (
+            'Get Started'
+          ) : (
+            'Upgrade Now'
+          )}
         </Button>
       </CardFooter>
     </Card>

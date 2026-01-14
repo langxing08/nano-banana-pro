@@ -91,6 +91,15 @@ export function GoogleOneTap() {
       setHasSession(!!data.session)
     }
     checkSession()
+
+    // 清理函数：在组件卸载时取消 Google One Tap 以避免 FedCM AbortError
+    return () => {
+      try {
+        window.google?.accounts.id.cancel()
+      } catch {
+        // 忽略清理时的错误
+      }
+    }
   }, [])
 
   // 初始化 Google One-Tap
@@ -145,8 +154,9 @@ export function GoogleOneTap() {
           }
         },
         nonce: hashedNonce,
-        // 使用 FedCM 以兼容 Chrome 第三方 cookie 淘汰 (Requirements: 3.4)
-        use_fedcm_for_prompt: true,
+        // 禁用 FedCM 以避免页面导航时的 AbortError 警告
+        // FedCM 在用户离开页面时会触发 AbortError，虽然不影响功能但会污染控制台
+        use_fedcm_for_prompt: false,
         auto_select: false,
         cancel_on_tap_outside: true,
       })
